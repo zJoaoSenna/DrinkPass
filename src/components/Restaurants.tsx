@@ -10,14 +10,14 @@ const restaurants = [
   },
   {
     id: 2,
-    name: 'Restaurante Exemplo 2',
-    cuisine: 'Japonesa',
-    location: 'Rio de Janeiro, RJ',
+    name: 'Bar do Afonso',
+    cuisine: 'Comida de Buteco',
+    location: 'Belo Horizonte, MG',
     image: 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80',
   },
   {
     id: 3,
-    name: 'Restaurante Exemplo 3',
+    name: 'A Casa do Chopp',
     cuisine: 'Brasileira',
     location: 'Belo Horizonte, MG',
     image: 'https://images.unsplash.com/photo-1552566626-52f8b828add9?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80',

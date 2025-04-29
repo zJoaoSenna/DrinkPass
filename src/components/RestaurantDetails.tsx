@@ -15,6 +15,7 @@ interface RestaurantDetailsProps {
       evening?: string;
     };
   };
+  features?: string[];
 }
 
 const defaultAvailability = {
@@ -34,6 +35,7 @@ const RestaurantDetails = ({
   description = "Tradição em carnes nobres desde 1993. Ambiente aconchegante e serviço de excelência.",
   promotion = "Rodada dupla em drinks e chopps!",
   availability = defaultAvailability,
+  features = ["Música ao vivo", "Cerveja artesanal", "Chopp artesanal", "Almoço", "Janta", "Happy Hour"],
 }: Partial<RestaurantDetailsProps>) => {
   return (
     <div className="min-h-screen bg-gray-50">
@@ -46,7 +48,7 @@ const RestaurantDetails = ({
               <img
                 src="/public/assacabrasa-logo.jpg"
                 alt="Assacabrasa"
-                className="h-32 mx-auto"
+                className="h-48 mx-auto"
               />
               <p className="text-white/80 mt-2 text-sm italic">Desde 1993</p>
             </div>
@@ -131,6 +133,15 @@ const RestaurantDetails = ({
                 <div className="inline-block bg-primary/10 text-primary px-3 py-1 rounded-full">
                   {cuisine}
                 </div>
+              </div>
+
+              <div className="bg-white p-6 rounded-xl shadow-sm">
+                <h3 className="text-lg font-semibold mb-4">Características Adicionais</h3>
+                <ul className="list-disc pl-5 text-gray-600">
+                  {features.map((feature, index) => (
+                    <li key={index}>{feature}</li>
+                  ))}
+                </ul>
               </div>
             </div>
           </div>
