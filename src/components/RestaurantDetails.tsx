@@ -46,7 +46,7 @@ const RestaurantDetails = ({
             {/* Logo */}
             <div className="mb-8">
               <img
-                src="/public/assacabrasa-logo.jpg"
+                src="/assacabrasa-logo.jpg"
                 alt="Assacabrasa"
                 className="h-48 mx-auto"
               />
