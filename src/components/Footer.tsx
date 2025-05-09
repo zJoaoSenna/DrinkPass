@@ -60,7 +60,7 @@ const Footer = () => {
           ))}
         </div>
         <p className="mt-10 text-center text-xs leading-5 text-gray-500">
-          &copy; {new Date().getFullYear()} Duo Gourmet. Todos os direitos reservados.
+          &copy; {new Date().getFullYear()} DrinkPass. Todos os direitos reservados.
         </p>
       </div>
     </footer>
