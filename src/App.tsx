@@ -6,6 +6,8 @@ import Restaurants from './components/Restaurants';
 import Membership from './components/Membership';
 import HowItWorks from './components/HowItWorks';
 import RestaurantDetails from './components/RestaurantDetails';
+import RestaurantList from './components/RestaurantList';
+import RestaurantRegistrationForm from './components/RestaurantRegistrationForm';
 
 function App() {
   return (
@@ -30,7 +32,13 @@ function App() {
           <Route path="how-it-works" element={<HowItWorks />} />
           <Route path="about" element={<div>Sobre</div>} />
           <Route path="contact" element={<div>Contato</div>} />
+          <Route path="register-restaurant" element={<RestaurantRegistrationForm />} /> {/* Nova rota */}
         </Route>
+        
+        {/* Rotas de administração de restaurantes */}
+        <Route path="/admin/restaurants" element={<RestaurantList />} />
+        <Route path="/admin/restaurants/new" element={<RestaurantRegistrationForm />} />
+        <Route path="/admin/restaurants/edit/:id" element={<RestaurantRegistrationForm isEditMode={true} />} />
       </Routes>
     </Router>
   );
