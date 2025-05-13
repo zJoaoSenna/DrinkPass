@@ -149,16 +149,16 @@ const RestaurantRegistrationForm: React.FC<RestaurantRegistrationFormProps> = ({
         // Cria um nome de arquivo único para evitar conflitos
         const fileName = `${Date.now()}_${sanitizedBaseName}`;
         
-        // Importante: Não use o prefixo 'public/' a menos que seja necessário para sua estrutura
         // Use diretamente o nome do arquivo para simplificar o acesso
         const filePath = fileName; 
 
         console.log('Nome do arquivo sanitizado para upload:', fileName);
 
+        // Fazer upload do arquivo
         const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('restaurantlogos') // Nome do seu bucket de logos
+          .from('restaurantlogos')
           .upload(filePath, logoFile, {
-            cacheControl: '31536000', // Cache de 1 ano para arquivos estáticos
+            cacheControl: '157680000', // Cache de 5 anos (60 * 60 * 24 * 365 * 5 = 157680000 segundos)
             upsert: false, // Não sobrescrever se o arquivo existir
           });
 
@@ -169,17 +169,33 @@ const RestaurantRegistrationForm: React.FC<RestaurantRegistrationFormProps> = ({
 
         console.log('Logo enviado:', uploadData);
         
-        // Obter a URL pública do arquivo enviado
-        const { data: publicUrlData } = supabase.storage
+        // Obter a URL pública do arquivo enviado com expiração de 5 anos
+        const expiryDate = new Date();
+        expiryDate.setFullYear(expiryDate.getFullYear() + 5); // Adiciona 5 anos à data atual
+        
+        const { data: signedUrlData, error: signedUrlError } = await supabase.storage
           .from('restaurantlogos')
-          .getPublicUrl(filePath);
-
-        if (!publicUrlData || !publicUrlData.publicUrl) {
-          console.error('Erro ao obter URL pública do logo. Resposta:', publicUrlData);
-          throw new Error('Não foi possível obter a URL pública do logo após o upload.');
+          .createSignedUrl(filePath, 157680000); // 5 anos em segundos
+        
+        if (signedUrlError) {
+          console.error('Erro ao gerar URL assinada:', signedUrlError);
+          
+          // Fallback para URL pública se a URL assinada falhar
+          const { data: publicUrlData } = supabase.storage
+            .from('restaurantlogos')
+            .getPublicUrl(filePath);
+            
+          if (!publicUrlData || !publicUrlData.publicUrl) {
+            console.error('Erro ao obter URL pública do logo. Resposta:', publicUrlData);
+            throw new Error('Não foi possível obter a URL do logo após o upload.');
+          }
+          
+          logoUrl = publicUrlData.publicUrl;
+          console.log('URL pública do logo (fallback):', logoUrl);
+        } else {
+          logoUrl = signedUrlData.signedUrl;
+          console.log('URL assinada do logo (expira em 5 anos):', logoUrl);
         }
-        logoUrl = publicUrlData.publicUrl;
-        console.log('URL pública do logo:', logoUrl);
       }
 
       // Prepara os dados para inserção/atualização na tabela 'restaurants'
