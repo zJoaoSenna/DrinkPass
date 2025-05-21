@@ -123,6 +123,37 @@ const RestaurantRegistrationForm: React.FC<RestaurantRegistrationFormProps> = ({
     fetchRestaurantData();
   }, [isEditMode, id, setValue]);
 
+  // Add at the top of your file, after imports:
+  interface FormData {
+  name: string;
+  features: string[];
+  location: string;
+  cuisine: string;
+  address: string;
+  phone: string;
+  description: string;
+  promotion: string;
+  logo?: FileList;
+  availability?: any;
+  }
+  
+  // Then use this type consistently:
+  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+    resolver: zodResolver(restaurantSchema),
+    defaultValues: {
+      name: '',
+      location: '',
+      cuisine: '',
+      address: '',
+      phone: '',
+      description: '',
+      promotion: '',
+      availability: defaultAvailabilityExample,
+      features: '',
+      logo: undefined,
+    }
+  });
+
   const onSubmit: SubmitHandler<RestaurantFormData> = async (formData) => {
     setIsLoading(true);
     setFormMessage(null);
@@ -263,6 +294,9 @@ const RestaurantRegistrationForm: React.FC<RestaurantRegistrationFormProps> = ({
         <div>
           <Label htmlFor="name">Nome do Estabelecimento</Label>
           <Input id="name" {...register('name')} />
+          // Change from:
+          // {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
+          // To:
           {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message?.toString()}</p>}
         </div>
 
