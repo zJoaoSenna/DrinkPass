@@ -8,6 +8,9 @@ import HowItWorks from './components/HowItWorks';
 import RestaurantDetails from './components/RestaurantDetails';
 import RestaurantList from './components/RestaurantList';
 import RestaurantRegistrationForm from './components/RestaurantRegistrationForm';
+import Checkout from './components/Checkout';
+import PaymentPage from './components/PaymentPage';
+import PaymentSuccess from './components/PaymentSuccess';
 
 function App() {
   return (
@@ -32,7 +35,12 @@ function App() {
           <Route path="how-it-works" element={<HowItWorks />} />
           <Route path="about" element={<div>Sobre</div>} />
           <Route path="contact" element={<div>Contato</div>} />
-          <Route path="register-restaurant" element={<RestaurantRegistrationForm />} /> {/* Nova rota */}
+          <Route path="register-restaurant" element={<RestaurantRegistrationForm />} />
+          
+          {/* Add all checkout routes */}
+          <Route path="checkout" element={<Checkout />} />
+          <Route path="checkout/payment" element={<PaymentPage />} />
+          <Route path="checkout/success" element={<PaymentSuccess />} />
         </Route>
         
         {/* Rotas de administração de restaurantes */}
