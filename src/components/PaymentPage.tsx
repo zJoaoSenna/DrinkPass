@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Copy, CheckCircle2 } from "lucide-react";
-import { QRCodeSVG } from 'qrcode.react';
+import QRCode from 'qrcode';
 
 interface PaymentPageProps {}
 
@@ -52,6 +52,15 @@ const PaymentPage: React.FC<PaymentPageProps> = () => {
     }
   };
   
+  // Adicionar função para abrir o app bancário
+  const openBankApp = () => {
+    // Criar URL com protocolo PIX
+    const pixUrl = `pix:${pixCode}`;
+    
+    // Tentar abrir o app bancário
+    window.location.href = pixUrl;
+  };
+  
   // Verificar status do pagamento
   const checkPaymentStatus = async () => {
     setIsCheckingStatus(true);
@@ -86,6 +95,29 @@ const PaymentPage: React.FC<PaymentPageProps> = () => {
     
     return () => clearInterval(timer);
   }, [timeLeft]);
+  
+  // Adicionar estado para armazenar a URL do QR Code
+  const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
+  
+  // Gerar QR Code como URL de imagem
+  useEffect(() => {
+    if (pixCode) {
+      QRCode.toDataURL(pixCode, {
+        width: 200,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      })
+      .then(url => {
+        setQrCodeUrl(url);
+      })
+      .catch(err => {
+        console.error('Erro ao gerar QR Code:', err);
+      });
+    }
+  }, [pixCode]);
   
   return (
     <div className="container mx-auto py-12 px-4">
@@ -123,14 +155,18 @@ const PaymentPage: React.FC<PaymentPageProps> = () => {
             {/* QR Code */}
             <div className="flex justify-center">
               <div className="border-4 border-primary/20 rounded-lg p-4 bg-white">
-                <QRCodeSVG 
-                  value={pixCode} 
-                  size={200}
-                  level="H"
-                  includeMargin={true}
-                  bgColor="#FFFFFF"
-                  fgColor="#000000"
-                />
+                {qrCodeUrl ? (
+                  <img 
+                    src={qrCodeUrl} 
+                    alt="QR Code PIX" 
+                    width={200} 
+                    height={200}
+                  />
+                ) : (
+                  <div className="w-[200px] h-[200px] flex items-center justify-center bg-gray-100">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                )}
               </div>
             </div>
             
@@ -147,6 +183,15 @@ const PaymentPage: React.FC<PaymentPageProps> = () => {
                 {copied ? <CheckCircle2 className="h-5 w-5 text-green-500" /> : <Copy className="h-5 w-5" />}
               </button>
             </div>
+            
+            {/* Botão para abrir app bancário */}
+            <Button 
+              variant="default" 
+              className="w-full" 
+              onClick={openBankApp}
+            >
+              Abrir aplicativo bancário
+            </Button>
             
             {formMessage && (
               <div className="bg-yellow-50 p-3 rounded-md border border-yellow-200">

@@ -232,25 +232,59 @@ const Checkout: React.FC = () => {
         // Fallback para simulação em caso de erro na API
         console.log('Usando simulação como fallback');
         
-        // Definir códigos PIX para cada plano
-        const pixCodes = {
-          monthly: "00020101021126330014br.gov.bcb.pix0111100229766475204000053039865802BR5917JOAO P S V VIEIRA6013BELO HORIZONT62070503***6304A55B",
-          semiannual: "00020101021126330014br.gov.bcb.pix0111100229766475204069.9053039865802BR5917JOAO P S V VIEIRA6013BELO HORIZONT62070503***6304A55B",
-          annual: "00020101021126330014br.gov.bcb.pix0111100229766475204049.9053039865802BR5917JOAO P S V VIEIRA6013BELO HORIZONT62070503***6304A55B"
-        };
-        
         // Simulação de resposta da API para desenvolvimento
-        setTimeout(() => {
+        try {
+          // Chamar a API de simulação de pagamento PIX
+          const simulationResponse = await fetch('https://api.abacatepay.com/v1/pixQrCode/simulate-payment', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${ABACATE_PAY_API_KEY}`
+            },
+            body: JSON.stringify({
+              amount: Math.round(currentPlan.price * 100), // Valor em centavos
+              description: `DrinkPass - ${currentPlan.name}`,
+              externalReference: `drinkpass-${currentPlan.id}-${Date.now()}`
+            })
+          });
+          
+          const simulationData = await simulationResponse.json();
+          
+          if (simulationData.error) {
+            throw new Error('Erro na simulação de pagamento');
+          }
+          
           navigate('/checkout/payment', { 
             state: { 
               plan: currentPlan,
               paymentData: paymentData,
-              pixCode: pixCodes[currentPlan.id], // Usar o código PIX correspondente ao plano
-              paymentId: "pay_" + Math.random().toString(36).substring(2, 15)
+              pixCode: simulationData.pixCode || simulationData.qrCode, // Usar o código retornado pela API
+              paymentId: simulationData.id || `pay_${Date.now()}`
             } 
           });
           setIsLoading(false);
-        }, 2000);
+        } catch (simulationError) {
+          console.error('Erro na simulação de pagamento:', simulationError);
+          
+          // Definir códigos PIX para cada plano como fallback final
+          const pixCodes = {
+            monthly: "00020101021126330014br.gov.bcb.pix0111100229766475204089.9053039865802BR5917JOAO P S V VIEIRA6013BELO HORIZONT62070503***6304A55B",
+            semiannual: "00020101021126330014br.gov.bcb.pix0111100229766475204069.9053039865802BR5917JOAO P S V VIEIRA6013BELO HORIZONT62070503***6304A55B",
+            annual: "00020101021126330014br.gov.bcb.pix0111100229766475204049.9053039865802BR5917JOAO P S V VIEIRA6013BELO HORIZONT62070503***6304A55B"
+          };
+          
+          setTimeout(() => {
+            navigate('/checkout/payment', { 
+              state: { 
+                plan: currentPlan,
+                paymentData: paymentData,
+                pixCode: pixCodes[currentPlan.id], // Usar o código PIX correspondente ao plano
+                paymentId: "pay_" + Math.random().toString(36).substring(2, 15)
+              } 
+            });
+            setIsLoading(false);
+          }, 2000);
+        }
       }
       
     } catch (error) {
