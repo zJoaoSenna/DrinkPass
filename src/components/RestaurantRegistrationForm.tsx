@@ -263,7 +263,7 @@ const RestaurantRegistrationForm: React.FC<RestaurantRegistrationFormProps> = ({
         <div>
           <Label htmlFor="name">Nome do Estabelecimento</Label>
           <Input id="name" {...register('name')} />
-          {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
+          {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message?.toString()}</p>}
         </div>
 
         <div>

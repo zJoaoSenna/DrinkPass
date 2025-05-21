@@ -5,9 +5,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Loader2, Copy, CheckCircle2 } from "lucide-react";
 import QRCode from 'qrcode';
 
-// Add a declaration for the qrcode module
-declare module 'qrcode';
-
 interface PaymentPageProps {}
 
 const PaymentPage: React.FC<PaymentPageProps> = () => {
@@ -37,7 +34,8 @@ const PaymentPage: React.FC<PaymentPageProps> = () => {
   // Recuperar dados do estado da navegação (com fallback para dados de teste)
   const plan = location.state?.plan || testPlan;
   const pixCode = location.state?.pixCode || testPixCode;
-  const paymentId = location.state?.paymentId || "pay_test";
+  // Remove or comment out unused variable
+  // const paymentId = location.state?.paymentId || "pay_test";
   
   // Formatar tempo restante
   const formatTime = (seconds: number) => {
@@ -113,8 +111,7 @@ const PaymentPage: React.FC<PaymentPageProps> = () => {
           light: '#FFFFFF'
         }
       })
-      // Fix the 'url' parameter type in the catch block
-      .then(url => {
+      .then((url: string) => {
         setQrCodeUrl(url);
       })
       .catch((err: Error) => {
