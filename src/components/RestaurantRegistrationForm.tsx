@@ -32,7 +32,7 @@ const restaurantSchema = z.object({
     }
   }, "Formato de disponibilidade inválido (deve ser JSON)").transform(val => JSON.parse(val)),
   // Para features, vamos usar uma string separada por vírgulas
-  features: z.string().optional().transform(val => val ? val.split(',').map(s => s.trim()) : []),
+  features: z.string().min(1, "Características são obrigatórias"),
   logo: z.instanceof(FileList).optional() // Campo para o arquivo de logo
     .refine(files => !files || files.length === 0 || files[0].size <= 5 * 1024 * 1024, { // Exemplo: Limite de 5MB
       message: 'O arquivo do logo deve ter no máximo 5MB.',
@@ -43,6 +43,19 @@ const restaurantSchema = z.object({
 });
 
 type RestaurantFormData = z.infer<typeof restaurantSchema>;
+
+interface RestaurantData {
+  name: string;
+  location: string;
+  cuisine: string;
+  address: string;
+  phone: string;
+  description: string;
+  promotion: string;
+  features: string[];
+  availability: any;
+  logo_url?: string | null;
+}
 
 const defaultAvailabilityExample = JSON.stringify({
   'Segunda': { morning: '11:30 - 14:30', evening: '17:00 - 22:00' },
@@ -198,9 +211,9 @@ const RestaurantRegistrationForm: React.FC<RestaurantRegistrationFormProps> = ({
 
       // Prepara os dados para inserção/atualização na tabela 'restaurants'
       const { logo, ...restOfData } = formData;
-      const dataToSave = {
+      const dataToSave: RestaurantData = {
         ...restOfData,
-        features: formData.features ? formData.features.split(',').map(f => f.trim()) : [],
+        features: formData.features.split(',').map((f: string) => f.trim()),
         logo_url: logoUrl,
       };
 
@@ -310,7 +323,13 @@ const RestaurantRegistrationForm: React.FC<RestaurantRegistrationFormProps> = ({
             {...register('availability')}
             placeholder='Exemplo: {"Segunda": {"morning": "08:00-12:00", "evening": "18:00-22:00"}, ...}'
           />
-          {errors.availability && <p className="text-red-500 text-sm">{errors.availability.message}</p>}
+          {errors.availability && (
+            <p className="text-red-500 text-sm">
+              {typeof errors.availability.message === 'string' 
+                ? errors.availability.message 
+                : 'Erro de validação'}
+            </p>
+          )}
           <p className="text-xs text-gray-500 mt-1">
             Insira os horários de funcionamento no formato JSON. Veja o exemplo no campo.
           </p>
