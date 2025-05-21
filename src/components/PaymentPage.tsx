@@ -53,13 +53,104 @@ const PaymentPage: React.FC<PaymentPageProps> = () => {
     }
   };
   
-  // Adicionar função para abrir o app bancário
+  // Função melhorada para abrir o app bancário
   const openBankApp = () => {
+    // Lista de apps bancários populares
+    const bankApps = [
+      {
+        name: 'Nubank',
+        schemes: ['nubank://', 'nubank://pix'],
+        storeUrl: 'https://play.google.com/store/apps/details?id=com.nu.production'
+      },
+      {
+        name: 'Itaú',
+        schemes: ['itau://', 'itau://pix'],
+        storeUrl: 'https://play.google.com/store/apps/details?id=com.itau'
+      },
+      {
+        name: 'Bradesco',
+        schemes: ['bradesco://', 'bradesco://pix'],
+        storeUrl: 'https://play.google.com/store/apps/details?id=com.bradesco'
+      },
+      {
+        name: 'Caixa',
+        schemes: ['caixa://', 'caixa://pix'],
+        storeUrl: 'https://play.google.com/store/apps/details?id=br.gov.caixa'
+      },
+      {
+        name: 'Banco do Brasil',
+        schemes: ['bb://', 'bb://pix'],
+        storeUrl: 'https://play.google.com/store/apps/details?id=br.com.bb.android'
+      }
+    ];
+
     // Criar URL com protocolo PIX
     const pixUrl = `pix:${pixCode}`;
     
-    // Tentar abrir o app bancário
-    window.location.href = pixUrl;
+    // Função para tentar abrir o app
+    const tryOpenApp = (scheme: string) => {
+      const link = document.createElement('a');
+      link.href = scheme + pixUrl;
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
+
+    // Tentar abrir o app do banco
+    let appOpened = false;
+    
+    // Primeiro, tentar abrir com o protocolo PIX direto
+    tryOpenApp('pix:');
+    
+    // Se não funcionar, tentar com os apps bancários
+    setTimeout(() => {
+      if (!appOpened) {
+        // Criar um modal para selecionar o banco
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50';
+        
+        const content = document.createElement('div');
+        content.className = 'bg-white p-6 rounded-lg max-w-md w-[90%] shadow-xl';
+        
+        const title = document.createElement('h3');
+        title.className = 'text-xl font-bold mb-4 text-center';
+        title.textContent = 'Selecione seu banco';
+        
+        content.appendChild(title);
+
+        const buttonContainer = document.createElement('div');
+        buttonContainer.className = 'space-y-3 mb-4';
+        
+        bankApps.forEach(bank => {
+          const button = document.createElement('button');
+          button.className = 'w-full py-3 px-4 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors text-left font-medium';
+          button.textContent = bank.name;
+
+          button.onclick = () => {
+            bank.schemes.forEach(scheme => tryOpenApp(scheme));
+            document.body.removeChild(modal);
+            appOpened = true;
+          };
+
+          buttonContainer.appendChild(button);
+        });
+
+        content.appendChild(buttonContainer);
+
+        const closeButton = document.createElement('button');
+        closeButton.className = 'w-full py-3 px-4 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors font-medium';
+        closeButton.textContent = 'Fechar';
+
+        closeButton.onclick = () => {
+          document.body.removeChild(modal);
+        };
+
+        content.appendChild(closeButton);
+        modal.appendChild(content);
+        document.body.appendChild(modal);
+      }
+    }, 1000);
   };
   
   // Verificar status do pagamento
