@@ -123,44 +123,13 @@ const RestaurantRegistrationForm: React.FC<RestaurantRegistrationFormProps> = ({
     fetchRestaurantData();
   }, [isEditMode, id, setValue]);
 
-  // Add at the top of your file, after imports:
-  interface FormData {
-  name: string;
-  features: string[];
-  location: string;
-  cuisine: string;
-  address: string;
-  phone: string;
-  description: string;
-  promotion: string;
-  logo?: FileList;
-  availability?: any;
-  }
-  
-  // Then use this type consistently:
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
-    resolver: zodResolver(restaurantSchema),
-    defaultValues: {
-      name: '',
-      location: '',
-      cuisine: '',
-      address: '',
-      phone: '',
-      description: '',
-      promotion: '',
-      availability: defaultAvailabilityExample,
-      features: '',
-      logo: undefined,
-    }
-  });
-
   const onSubmit: SubmitHandler<RestaurantFormData> = async (formData) => {
     setIsLoading(true);
     setFormMessage(null);
 
     try {
-      let logoUrl: string | null = currentLogoUrl; // Manter a URL atual se não for enviado um novo logo
-      const logoFile = formData.logo?.[0]; // Pega o primeiro arquivo da FileList
+      let logoUrl: string | null = currentLogoUrl;
+      const logoFile = formData.logo?.[0];
 
       if (logoFile) {
         console.log('Fazendo upload do logo:', logoFile.name);
@@ -228,9 +197,10 @@ const RestaurantRegistrationForm: React.FC<RestaurantRegistrationFormProps> = ({
       }
 
       // Prepara os dados para inserção/atualização na tabela 'restaurants'
-      const { logo, ...restOfData } = formData; 
+      const { logo, ...restOfData } = formData;
       const dataToSave = {
         ...restOfData,
+        features: formData.features ? formData.features.split(',').map(f => f.trim()) : [],
         logo_url: logoUrl,
       };
 
@@ -290,50 +260,46 @@ const RestaurantRegistrationForm: React.FC<RestaurantRegistrationFormProps> = ({
       </h1>
       
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {/* Campos do formulário permanecem os mesmos */}
         <div>
           <Label htmlFor="name">Nome do Estabelecimento</Label>
           <Input id="name" {...register('name')} />
-          // Change from:
-          // {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
-          // To:
-          {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message?.toString()}</p>}
+          {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
         </div>
 
         <div>
           <Label htmlFor="location">Localização (Ex: Cidade, Estado)</Label>
           <Input id="location" {...register('location')} />
-          {errors.location && <p className="text-red-500 text-sm mt-1">{errors.location.message}</p>}
+          {errors.location && <p className="text-red-500 text-sm">{errors.location.message}</p>}
         </div>
 
         <div>
           <Label htmlFor="cuisine">Tipo de Cozinha</Label>
           <Input id="cuisine" {...register('cuisine')} />
-          {errors.cuisine && <p className="text-red-500 text-sm mt-1">{errors.cuisine.message}</p>}
+          {errors.cuisine && <p className="text-red-500 text-sm">{errors.cuisine.message}</p>}
         </div>
 
         <div>
           <Label htmlFor="address">Endereço Completo</Label>
           <Input id="address" {...register('address')} />
-          {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address.message}</p>}
+          {errors.address && <p className="text-red-500 text-sm">{errors.address.message}</p>}
         </div>
 
         <div>
           <Label htmlFor="phone">Telefone</Label>
           <Input id="phone" {...register('phone')} />
-          {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone.message}</p>}
+          {errors.phone && <p className="text-red-500 text-sm">{errors.phone.message}</p>}
         </div>
 
         <div>
           <Label htmlFor="description">Descrição</Label>
           <Textarea id="description" {...register('description')} />
-          {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description.message}</p>}
+          {errors.description && <p className="text-red-500 text-sm">{errors.description.message}</p>}
         </div>
 
         <div>
           <Label htmlFor="promotion">Promoção Principal</Label>
           <Input id="promotion" {...register('promotion')} />
-          {errors.promotion && <p className="text-red-500 text-sm mt-1">{errors.promotion.message}</p>}
+          {errors.promotion && <p className="text-red-500 text-sm">{errors.promotion.message}</p>}
         </div>
         
         <div>
@@ -344,7 +310,7 @@ const RestaurantRegistrationForm: React.FC<RestaurantRegistrationFormProps> = ({
             {...register('availability')}
             placeholder='Exemplo: {"Segunda": {"morning": "08:00-12:00", "evening": "18:00-22:00"}, ...}'
           />
-          {errors.availability && <p className="text-red-500 text-sm mt-1">{errors.availability.message}</p>}
+          {errors.availability && <p className="text-red-500 text-sm">{errors.availability.message}</p>}
           <p className="text-xs text-gray-500 mt-1">
             Insira os horários de funcionamento no formato JSON. Veja o exemplo no campo.
           </p>
@@ -357,10 +323,9 @@ const RestaurantRegistrationForm: React.FC<RestaurantRegistrationFormProps> = ({
             {...register('features')}
             placeholder="Ex: Música ao vivo, Cerveja artesanal, Pet friendly"
           />
-          {errors.features && <p className="text-red-500 text-sm mt-1">{errors.features.message}</p>}
+          {errors.features && <p className="text-red-500 text-sm">{errors.features.message}</p>}
         </div>
 
-        {/* Novo campo para upload do logo */}
         <div>
           <Label htmlFor="logo">Logo do Restaurante</Label>
           {currentLogoUrl && (
@@ -384,7 +349,7 @@ const RestaurantRegistrationForm: React.FC<RestaurantRegistrationFormProps> = ({
               ? 'Deixe em branco para manter o logo atual' 
               : 'Selecione um arquivo de imagem para o logo'}
           </p>
-          {errors.logo && <p className="text-red-500 text-sm mt-1">{errors.logo.message}</p>}
+          {errors.logo && <p className="text-red-500 text-sm">{errors.logo.message}</p>}
         </div>
 
         <div className="flex gap-4">
