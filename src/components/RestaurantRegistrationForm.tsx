@@ -74,7 +74,7 @@ const RestaurantRegistrationForm: React.FC<RestaurantRegistrationFormProps> = ({
   const [formMessage, setFormMessage] = useState<string | null>(null);
   const [currentLogoUrl, setCurrentLogoUrl] = useState<string | null>(null);
 
-  const { control, register, handleSubmit, formState: { errors }, reset, setValue } = useForm<RestaurantFormData>({
+  const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm<RestaurantFormData>({
     resolver: zodResolver(restaurantSchema),
     defaultValues: {
       name: '',
@@ -212,9 +212,16 @@ const RestaurantRegistrationForm: React.FC<RestaurantRegistrationFormProps> = ({
       // Prepara os dados para inserção/atualização na tabela 'restaurants'
       const { logo, ...restOfData } = formData;
       const dataToSave: RestaurantData = {
-        ...restOfData,
+        name: restOfData.name,
+        location: restOfData.location,
+        cuisine: restOfData.cuisine,
+        address: restOfData.address,
+        phone: restOfData.phone,
+        description: restOfData.description,
+        promotion: restOfData.promotion,
         features: formData.features.split(',').map((f: string) => f.trim()),
-        logo_url: logoUrl,
+        availability: restOfData.availability || defaultAvailabilityExample,
+        logo_url: logoUrl
       };
 
       let result;
