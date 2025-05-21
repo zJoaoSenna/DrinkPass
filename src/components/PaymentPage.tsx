@@ -5,6 +5,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Loader2, Copy, CheckCircle2 } from "lucide-react";
 import QRCode from 'qrcode';
 
+// Add a declaration for the qrcode module
+declare module 'qrcode';
+
 interface PaymentPageProps {}
 
 const PaymentPage: React.FC<PaymentPageProps> = () => {
@@ -110,10 +113,11 @@ const PaymentPage: React.FC<PaymentPageProps> = () => {
           light: '#FFFFFF'
         }
       })
+      // Fix the 'url' parameter type in the catch block
       .then(url => {
         setQrCodeUrl(url);
       })
-      .catch(err => {
+      .catch((err: Error) => {
         console.error('Erro ao gerar QR Code:', err);
       });
     }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useForm, SubmitHandler, Controller } from 'react-hook-form';
+import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { supabase } from '@/lib/supabaseClient';
@@ -10,10 +10,8 @@ import { Label } from "@/components/ui/label";
 import { useParams, useNavigate } from 'react-router-dom';
 
 // Schema de validação com Zod
-const availabilitySchema = z.object({
-  morning: z.string().optional(),
-  evening: z.string().optional(),
-}).optional();
+// Remove or comment out unused variables
+// const availabilitySchema = z.object({...}); // Unused variable
 
 const restaurantSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório"),

@@ -267,7 +267,8 @@ const Checkout: React.FC = () => {
           console.error('Erro na simulação de pagamento:', simulationError);
           
           // Definir códigos PIX para cada plano como fallback final
-          const pixCodes = {
+          // Fix the pixCodes indexing issue
+          const pixCodes: Record<string, string> = {
             monthly: "00020101021126330014br.gov.bcb.pix0111100229766475204089.9053039865802BR5917JOAO P S V VIEIRA6013BELO HORIZONT62070503***6304A55B",
             semiannual: "00020101021126330014br.gov.bcb.pix0111100229766475204069.9053039865802BR5917JOAO P S V VIEIRA6013BELO HORIZONT62070503***6304A55B",
             annual: "00020101021126330014br.gov.bcb.pix0111100229766475204049.9053039865802BR5917JOAO P S V VIEIRA6013BELO HORIZONT62070503***6304A55B"
