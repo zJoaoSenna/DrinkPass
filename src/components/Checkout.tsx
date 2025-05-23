@@ -171,34 +171,35 @@ const Checkout: React.FC = () => {
       console.log('Validação do formulário falhou');
       return;
     }
-
+  
     setIsLoading(true);
     console.log('Iniciando processo de checkout...');
-
-    try {
-      // Preparar dados para a API AbacatePay
-      const paymentData = {
-        frequency: "ONE_TIME" as const,
-        methods: ["PIX"],
-        products: [
-          {
-            externalId: `drinkpass-${currentPlan.id}-${Date.now()}`,
-            name: `DrinkPass - ${currentPlan.name}`,
-            description: currentPlan.description,
-            quantity: 1,
-            price: Math.round(currentPlan.price * 100) // Converter para centavos
-          }
-        ],
-        returnUrl: `${window.location.origin}/checkout`,
-        completionUrl: `${window.location.origin}/checkout/success`,
-        customer: {
-          name: customerData.name,
-          email: customerData.email,
-          phone: customerData.phone.replace(/\D/g, ''),
-          document: customerData.document.replace(/\D/g, '')
-        }
-      };
   
+    // Mover a declaração para fora do bloco try
+    const paymentData = {
+      frequency: "ONE_TIME" as const,
+      methods: ["PIX"],
+      products: [
+        {
+          externalId: `drinkpass-${currentPlan.id}-${Date.now()}`,
+          name: `DrinkPass - ${currentPlan.name}`,
+          description: currentPlan.description,
+          quantity: 1,
+          price: Math.round(currentPlan.price * 100) // Converter para centavos
+        }
+      ],
+      returnUrl: `${window.location.origin}/checkout`,
+      completionUrl: `${window.location.origin}/checkout/success`,
+      customer: {
+        name: customerData.name,
+        email: customerData.email,
+        phone: customerData.phone.replace(/\D/g, ''),
+        document: customerData.document.replace(/\D/g, '')
+      }
+    };
+  
+    try {
+      // Resto do código permanece igual
       console.log('Dados do pagamento preparados:', paymentData);
       
       // Tentar chamada à API AbacatePay
