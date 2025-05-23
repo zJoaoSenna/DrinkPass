@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Copy, CheckCircle2 } from "lucide-react";
 import QRCode from 'qrcode';
+import { abacatePayClient } from '@/lib/abacatePayClient';
 
 interface PaymentPageProps {}
 
@@ -13,170 +14,136 @@ const PaymentPage: React.FC<PaymentPageProps> = () => {
   const [copied, setCopied] = useState(false);
   const [timeLeft, setTimeLeft] = useState(900); // 15 minutos em segundos
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
-  const [formMessage, setFormMessage] = useState<string | null>(null);
+  const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
+  const [paymentStatus, setPaymentStatus] = useState<'pending' | 'paid' | 'expired'>('pending');
+  const [formMessage, setFormMessage] = useState<string | null>(null); // Adicionando formMessage
+
+  // Recuperar dados do estado da navegação
+  const { plan, billing, isDevelopment } = location.state || {};
   
-  // Log para depuração
-  useEffect(() => {
-    console.log("Estado da navegação:", location.state);
-  }, [location.state]);
-  
-  // Dados de teste para desenvolvimento (caso location.state esteja vazio)
-  const testPlan = {
-    id: 'monthly',
-    name: 'Plano Mensal',
-    description: 'Acesso a todos os benefícios por 1 mês',
-    price: 29.90,
-    period: 'mês',
+  // Fallback para desenvolvimento
+  const pixCode = billing?.pixCode || "00020101021126330014br.gov.bcb.pix0111100229766475204089.9053039865802BR5917DRINKPASS LTDA6013BELO HORIZONT62070503***6304A55B";
+  const billingId = billing?.id || `dev_${Date.now()}`;
+
+  // Função para formatar o tempo restante
+  const formatTime = (seconds: number): string => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
-  const testPixCode = "00020101021226890014br.gov.bcb.pix2567pix-h.example.com/9d36b84f-c70b-478f-b95c-12729e90ca25520400005303986540510.005802BR5925Teste AbacatePay6009Sao Paulo62070503***63041D14";
-  
-  // Recuperar dados do estado da navegação (com fallback para dados de teste)
-  const plan = location.state?.plan || testPlan;
-  const pixCode = location.state?.pixCode || testPixCode;
-  // Remove or comment out unused variable
-  // const paymentId = location.state?.paymentId || "pay_test";
-  
-  // Formatar tempo restante
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-  
-  // Copiar código PIX para a área de transferência
+  // Função para copiar o código PIX para a área de transferência
   const copyToClipboard = () => {
-    if (pixCode) {
-      navigator.clipboard.writeText(pixCode);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 3000);
+    navigator.clipboard.writeText(pixCode)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 3000);
+      })
+      .catch(err => {
+        console.error('Erro ao copiar para área de transferência:', err);
+        setFormMessage('Não foi possível copiar o código. Por favor, copie manualmente.');
+      });
+  };
+
+  // Função para abrir aplicativo bancário
+  const openBankApp = () => {
+    // Lista de URLs de esquema para apps bancários comuns
+    const bankSchemes = [
+      'nubank://',
+      'itau://',
+      'bradesco://',
+      'santander://',
+      'caixa://',
+      'bb://'
+    ];
+    
+    // Tenta abrir cada app bancário
+    let opened = false;
+    
+    // Em dispositivos móveis, tenta abrir os apps
+    if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+      for (const scheme of bankSchemes) {
+        try {
+          window.location.href = scheme;
+          opened = true;
+          break;
+        } catch (e) {
+          console.log(`Não foi possível abrir ${scheme}`);
+        }
+      }
+    }
+    
+    // Se não conseguiu abrir nenhum app ou está em desktop
+    if (!opened) {
+      // Tenta abrir o app padrão de PIX do sistema
+      try {
+        window.location.href = `pix://${pixCode}`;
+      } catch (e) {
+        setFormMessage('Não foi possível abrir um aplicativo bancário automaticamente. Por favor, abra manualmente seu app e escaneie o QR code.');
+      }
     }
   };
-  
-  // Função melhorada para abrir o app bancário
-  const openBankApp = () => {
-    // Lista de apps bancários populares
-    const bankApps = [
-      {
-        name: 'Nubank',
-        schemes: ['nubank://', 'nubank://pix'],
-        storeUrl: 'https://play.google.com/store/apps/details?id=com.nu.production'
-      },
-      {
-        name: 'Itaú',
-        schemes: ['itau://', 'itau://pix'],
-        storeUrl: 'https://play.google.com/store/apps/details?id=com.itau'
-      },
-      {
-        name: 'Bradesco',
-        schemes: ['bradesco://', 'bradesco://pix'],
-        storeUrl: 'https://play.google.com/store/apps/details?id=com.bradesco'
-      },
-      {
-        name: 'Caixa',
-        schemes: ['caixa://', 'caixa://pix'],
-        storeUrl: 'https://play.google.com/store/apps/details?id=br.gov.caixa'
-      },
-      {
-        name: 'Banco do Brasil',
-        schemes: ['bb://', 'bb://pix'],
-        storeUrl: 'https://play.google.com/store/apps/details?id=br.com.bb.android'
-      }
-    ];
 
-    // Criar URL com protocolo PIX
-    const pixUrl = `pix:${pixCode}`;
-    
-    // Função para tentar abrir o app
-    const tryOpenApp = (scheme: string) => {
-      const link = document.createElement('a');
-      link.href = scheme + pixUrl;
-      link.style.display = 'none';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    };
-
-    // Tentar abrir o app do banco
-    let appOpened = false;
-    
-    // Primeiro, tentar abrir com o protocolo PIX direto
-    tryOpenApp('pix:');
-    
-    // Se não funcionar, tentar com os apps bancários
-    setTimeout(() => {
-      if (!appOpened) {
-        // Criar um modal para selecionar o banco
-        const modal = document.createElement('div');
-        modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50';
-        
-        const content = document.createElement('div');
-        content.className = 'bg-white p-6 rounded-lg max-w-md w-[90%] shadow-xl';
-        
-        const title = document.createElement('h3');
-        title.className = 'text-xl font-bold mb-4 text-center';
-        title.textContent = 'Selecione seu banco';
-        
-        content.appendChild(title);
-
-        const buttonContainer = document.createElement('div');
-        buttonContainer.className = 'space-y-3 mb-4';
-        
-        bankApps.forEach(bank => {
-          const button = document.createElement('button');
-          button.className = 'w-full py-3 px-4 bg-white border border-gray-200 rounded-md hover:bg-gray-50 transition-colors text-left font-medium';
-          button.textContent = bank.name;
-
-          button.onclick = () => {
-            bank.schemes.forEach(scheme => tryOpenApp(scheme));
-            document.body.removeChild(modal);
-            appOpened = true;
-          };
-
-          buttonContainer.appendChild(button);
-        });
-
-        content.appendChild(buttonContainer);
-
-        const closeButton = document.createElement('button');
-        closeButton.className = 'w-full py-3 px-4 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors font-medium';
-        closeButton.textContent = 'Fechar';
-
-        closeButton.onclick = () => {
-          document.body.removeChild(modal);
-        };
-
-        content.appendChild(closeButton);
-        modal.appendChild(content);
-        document.body.appendChild(modal);
-      }
-    }, 1000);
-  };
-  
   // Verificar status do pagamento
   const checkPaymentStatus = async () => {
-    setIsCheckingStatus(true);
-    setFormMessage(null);
-    
-    try {
-      // Simulação para desenvolvimento
+    if (!billing?.id || isDevelopment) {
+      // Simular verificação em modo desenvolvimento
+      setIsCheckingStatus(true);
       setTimeout(() => {
-        // Simulando pagamento bem-sucedido
-        navigate('/checkout/success', { 
-          state: { 
-            plan: plan,
-            transactionId: 'pix_' + Math.random().toString(36).substring(2, 15)
-          } 
-        });
         setIsCheckingStatus(false);
+        // Simular pagamento aprovado aleatoriamente
+        if (Math.random() > 0.7) {
+          setPaymentStatus('paid');
+          navigate('/checkout/success', {
+            state: {
+              plan,
+              transactionId: billingId,
+              billing
+            }
+          });
+        } else {
+          alert('Pagamento ainda não identificado. Tente novamente em alguns instantes.');
+        }
       }, 2000);
+      return;
+    }
+
+    setIsCheckingStatus(true);
+    try {
+      const status = await abacatePayClient.getBillingStatus(billing.id);
+      
+      if (status.status === 'paid') {
+        setPaymentStatus('paid');
+        navigate('/checkout/success', {
+          state: {
+            plan,
+            transactionId: billing.id,
+            billing: status
+          }
+        });
+      } else if (status.status === 'expired') {
+        setPaymentStatus('expired');
+        alert('Este pagamento expirou. Você será redirecionado para criar um novo.');
+        navigate('/checkout');
+      } else {
+        alert('Pagamento ainda não identificado. Tente novamente em alguns instantes.');
+      }
     } catch (error) {
-      console.error('Erro ao verificar status do pagamento:', error);
+      console.error('Erro ao verificar status:', error);
+      alert('Erro ao verificar o status do pagamento. Tente novamente.');
+    } finally {
       setIsCheckingStatus(false);
-      setFormMessage('Erro ao verificar o pagamento. Tente novamente.');
     }
   };
-  
+
+  // Verificação automática de status a cada 30 segundos
+  useEffect(() => {
+    if (paymentStatus === 'pending' && billing?.id && !isDevelopment) {
+      const interval = setInterval(checkPaymentStatus, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [paymentStatus, billing?.id, isDevelopment]);
+
   // Contador regressivo
   useEffect(() => {
     if (timeLeft <= 0) return;
@@ -188,8 +155,6 @@ const PaymentPage: React.FC<PaymentPageProps> = () => {
     return () => clearInterval(timer);
   }, [timeLeft]);
   
-  // Adicionar estado para armazenar a URL do QR Code
-  const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   
   // Gerar QR Code como URL de imagem
   useEffect(() => {
@@ -228,11 +193,11 @@ const PaymentPage: React.FC<PaymentPageProps> = () => {
               <h3 className="font-medium mb-2">Resumo da compra</h3>
               <div className="flex justify-between mb-1">
                 <span>Plano:</span>
-                <span>{plan.name}</span>
+                <span>{plan?.name || 'Plano não especificado'}</span>
               </div>
               <div className="flex justify-between font-bold">
                 <span>Total:</span>
-                <span>R$ {plan.price.toFixed(2)}</span>
+                <span>R$ {plan?.price?.toFixed(2) || '0.00'}</span>
               </div>
             </div>
             
