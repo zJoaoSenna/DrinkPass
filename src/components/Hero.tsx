@@ -27,7 +27,7 @@ const Hero = () => {
               to="/how-it-works"
               className="text-sm font-semibold leading-6 text-gray-900"
             >
-              Saiba mais <span aria-hidden="true">→</span>
+              Como funciona <span aria-hidden="true">→</span>
             </Link>
           </div>
         </div>
