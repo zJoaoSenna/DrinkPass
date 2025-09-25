@@ -175,78 +175,52 @@ const Checkout: React.FC = () => {
     setIsLoading(true);
     console.log('Iniciando processo de checkout...');
   
-    // Mover a declaração para fora do bloco try
+    // Preparar dados para o Stripe
     const paymentData = {
-      frequency: "ONE_TIME" as const,
-      methods: ["PIX"],
-      products: [
-        {
-          externalId: `drinkpass-${currentPlan.id}-${Date.now()}`,
-          name: `DrinkPass - ${currentPlan.name}`,
-          description: currentPlan.description,
-          quantity: 1,
-          price: Math.round(currentPlan.price * 100) // Converter para centavos
-        }
-      ],
-      returnUrl: `${window.location.origin}/checkout`,
-      completionUrl: `${window.location.origin}/checkout/success`,
       customer: {
         name: customerData.name,
         email: customerData.email,
         phone: customerData.phone.replace(/\D/g, ''),
         document: customerData.document.replace(/\D/g, '')
-      }
+      },
+      products: [
+        {
+          id: `drinkpass-${currentPlan.id}`,
+          name: `DrinkPass - ${currentPlan.name}`,
+          description: currentPlan.description,
+          quantity: 1,
+          price: Math.round(currentPlan.price * 100), // Converter para centavos
+          currency: 'BRL' // Moeda padrão
+        }
+      ],
+      currency: 'BRL', // Moeda padrão
+      returnUrl: `${window.location.origin}/checkout`,
+      successUrl: `${window.location.origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancelUrl: `${window.location.origin}/checkout`
     };
   
     try {
-      // Resto do código permanece igual
       console.log('Dados do pagamento preparados:', paymentData);
       
-      // Tentar chamada à API AbacatePay
+      // Chamar API Stripe
       try {
-        const ABACATE_PAY_API_KEY = 'abc_dev_rWweKhQmjqj56s52B2qzRzfg';
+        console.log('Tentando chamar API Stripe...');
+        const billingResponse = await stripeClient.createPaymentIntent(paymentData);
+        console.log('Dados da cobrança:', billingResponse);
         
-        console.log('Tentando chamar API AbacatePay...');
-        const response = await fetch('https://api.abacatepay.com/v1/billing/create', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${ABACATE_PAY_API_KEY}`,
-            'Accept': 'application/json'
-          },
-          body: JSON.stringify(paymentData)
-        });
-        
-        console.log('Resposta da API recebida:', response.status);
-        
-        if (response.ok) {
-          const billingResponse = await response.json();
-          console.log('Dados da cobrança:', billingResponse);
-          
-          // Redirecionar para página de pagamento com os dados reais
-          navigate('/checkout/payment', { 
-            state: { 
-              plan: currentPlan,
-              billing: billingResponse,
-              paymentData: paymentData
-            } 
-          });
-          return;
-        } else {
-          const errorData = await response.json();
-          console.log('Erro da API:', errorData);
-          throw new Error(errorData.message || 'Erro na API');
-        }
+        // Redirecionar para a página de checkout do Stripe
+        window.location.href = billingResponse.url;
+        return;
       } catch (apiError) {
         console.log('Erro na API, usando fallback:', apiError);
         
-        // Fallback - sempre redirecionar para a página de pagamento
+        // Fallback para desenvolvimento
         const mockBilling = {
           id: `pay_${Date.now()}`,
           url: `${window.location.origin}/checkout/payment`,
-          pixCode: generateMockPixCode(currentPlan),
           status: 'pending',
           amount: Math.round(currentPlan.price * 100),
+          currency: 'BRL',
           expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString() // 15 minutos
         };
         
@@ -436,3 +410,5 @@ const Checkout: React.FC = () => {
 };
 
 export default Checkout;
+// Importar o novo cliente Stripe
+import { stripeClient } from '@/lib/stripeClient';

@@ -25,6 +25,7 @@ const PaymentSuccess: React.FC<PaymentSuccessProps> = () => {
     : 'pix_' + Math.random().toString(36).substring(2, 15);
   
   // Gerar data de expiração baseada no plano
+  // Atualizar a função getExpirationDate para usar os dados do Stripe
   const getExpirationDate = () => {
     const today = new Date();
     

@@ -34,7 +34,7 @@ const HowItWorks = () => {
           <p className="text-lg leading-8 text-gray-600 font-medium">
             Com o <span className="text-primary-drink">Drink</span>
             <span className="text-primary-pass">Pass</span>, você terá acesso a rodadas 
-            duplas em restaurantes, bares e butecos, além de se conectar com outras 
+            duplas em restaurantes, bares e butecos parceiros, além de se conectar com outras 
             promoções de bebidas, como rolha gratuita, descontos progressivos, etc.
           </p>
         </div>

@@ -170,7 +170,7 @@ const RestaurantDetails = () => {
               <div className="bg-white p-6 rounded-xl shadow-sm">
                 <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                   <Clock className="text-primary" />
-                  Dias e Horários Disponíveis
+                  Dias e Horários Promocionais
                 </h3>
                 <div className="border rounded-lg overflow-hidden">
                   <table className="w-full">
@@ -201,7 +201,7 @@ const RestaurantDetails = () => {
               </div>
 
               <div className="bg-white p-6 rounded-xl shadow-sm">
-                <h3 className="text-lg font-semibold mb-4">Cozinha</h3>
+                <h3 className="text-lg font-semibold mb-4">Atividade Principal</h3>
                 <div className="inline-block bg-primary/10 text-primary px-3 py-1 rounded-full">
                   {restaurant.cuisine}
                 </div>

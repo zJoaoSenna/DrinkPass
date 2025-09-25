@@ -72,10 +72,10 @@ const Restaurants = () => {
       <div className="container">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-            Nossos Restaurantes Parceiros
+            Nossos Estabelecimentos Parceiros
           </h2>
           <p className="mt-6 text-lg leading-8 text-gray-600">
-            Descubra uma seleção dos melhores restaurantes que aceitam o DrinkPass.
+            Descubra uma seleção dos melhores estabelecimentos que aceitam o DrinkPass.
           </p>
         </div>
         
@@ -125,7 +125,7 @@ const Restaurants = () => {
               to="/restaurants"
               className="text-sm font-semibold leading-6 text-primary"
             >
-              Ver todos os restaurantes <span aria-hidden="true">→</span>
+              Ver todos os estabelecimentos <span aria-hidden="true">→</span>
             </Link>
           </div>
         )}
