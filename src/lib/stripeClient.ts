@@ -1,7 +1,6 @@
 // Cliente dedicado para Stripe
 const STRIPE_PUBLIC_KEY = import.meta.env.VITE_STRIPE_PUBLIC_KEY || 'pk_test_your_default_test_key';
 const STRIPE_SECRET_KEY = import.meta.env.VITE_STRIPE_SECRET_KEY || 'sk_test_your_default_test_key';
-const STRIPE_WEBHOOK_SECRET = import.meta.env.VITE_STRIPE_WEBHOOK_SECRET;
 
 export interface StripeProduct {
   id: string;
