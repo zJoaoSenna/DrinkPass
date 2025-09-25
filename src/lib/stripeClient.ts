@@ -40,12 +40,10 @@ export interface StripePaymentResponse {
 export class StripeClient {
   private publicKey: string;
   private secretKey: string;
-  private webhookSecret: string | undefined;
 
-  constructor(publicKey?: string, secretKey?: string, webhookSecret?: string) {
+  constructor(publicKey?: string, secretKey?: string) {
     this.publicKey = publicKey || STRIPE_PUBLIC_KEY;
     this.secretKey = secretKey || STRIPE_SECRET_KEY;
-    this.webhookSecret = webhookSecret || STRIPE_WEBHOOK_SECRET;
   }
 
   async createPaymentIntent(data: StripePaymentRequest): Promise<StripePaymentResponse> {
@@ -64,30 +62,36 @@ export class StripeClient {
       }));
 
       // Criar a sessão de checkout
+      const params: Record<string, string> = {
+        'payment_method_types[]': 'card',
+        'mode': 'payment',
+        'success_url': data.successUrl,
+        'cancel_url': data.cancelUrl,
+        'customer_email': data.customer.email,
+        'client_reference_id': `drinkpass-${Date.now()}`
+      };
+      
+      // Adicionar metadados do cliente
+      params['payment_intent_data[metadata][customer_name]'] = data.customer.name;
+      params['payment_intent_data[metadata][customer_phone]'] = data.customer.phone;
+      params['payment_intent_data[metadata][customer_document]'] = data.customer.document;
+      
+      // Adicionar itens de linha
+      lineItems.forEach((item, index) => {
+        params[`line_items[${index}][price_data][currency]`] = item.price_data.currency;
+        params[`line_items[${index}][price_data][product_data][name]`] = item.price_data.product_data.name;
+        params[`line_items[${index}][price_data][product_data][description]`] = item.price_data.product_data.description || '';
+        params[`line_items[${index}][price_data][unit_amount]`] = item.price_data.unit_amount.toString();
+        params[`line_items[${index}][quantity]`] = item.quantity.toString();
+      });
+      
       const response = await fetch('https://api.stripe.com/v1/checkout/sessions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
           'Authorization': `Bearer ${this.secretKey}`,
         },
-        body: new URLSearchParams({
-          'payment_method_types[]': 'card',
-          'mode': 'payment',
-          'success_url': data.successUrl,
-          'cancel_url': data.cancelUrl,
-          ...lineItems.flatMap((item, index) => [
-            `line_items[${index}][price_data][currency]=${item.price_data.currency}`,
-            `line_items[${index}][price_data][product_data][name]=${item.price_data.product_data.name}`,
-            `line_items[${index}][price_data][product_data][description]=${item.price_data.product_data.description || ''}`,
-            `line_items[${index}][price_data][unit_amount]=${item.price_data.unit_amount}`,
-            `line_items[${index}][quantity]=${item.quantity}`,
-          ]),
-          'customer_email': data.customer.email,
-          'client_reference_id': `drinkpass-${Date.now()}`,
-          'payment_intent_data[metadata][customer_name]': data.customer.name,
-          'payment_intent_data[metadata][customer_phone]': data.customer.phone,
-          'payment_intent_data[metadata][customer_document]': data.customer.document,
-        }).toString(),
+        body: new URLSearchParams(params).toString(),
       });
 
       if (!response.ok) {
