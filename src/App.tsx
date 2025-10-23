@@ -11,6 +11,7 @@ import RestaurantRegistrationForm from './components/RestaurantRegistrationForm'
 import Checkout from './components/Checkout';
 import PaymentPage from './components/PaymentPage';
 import PaymentSuccess from './components/PaymentSuccess';
+import Contact from './components/Contact';
 
 function App() {
   return (
@@ -34,7 +35,7 @@ function App() {
           <Route path="membership" element={<Membership />} />
           <Route path="how-it-works" element={<HowItWorks />} />
           <Route path="about" element={<div>Sobre</div>} />
-          <Route path="contact" element={<div>Contato</div>} />
+          <Route path="contact" element={<Contact />} />
           <Route path="register-restaurant" element={<RestaurantRegistrationForm />} />
           
           {/* Add all checkout routes */}
