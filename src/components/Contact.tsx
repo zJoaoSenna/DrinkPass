@@ -1,5 +1,3 @@
-import React from 'react';
-
 const Contact = () => {
   return (
     <section className="py-24 sm:py-32 bg-gradient-to-b from-primary/5 to-transparent">
